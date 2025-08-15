@@ -1,0 +1,2599 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Kinerja HRIS - PWA</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#FF6B35">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="HRIS PWA">
+    <meta name="description" content="Aplikasi HRIS untuk absensi dan KPI">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --orange-primary: #FF6B35;
+            --orange-light: #FFE5DC;
+            --orange-dark: #E55A2B;
+            --black: #1A1A1A;
+            --gray-dark: #333333;
+            --gray-medium: #666666;
+            --gray-light: #F5F5F5;
+            --white: #FFFFFF;
+            --border: #E0E0E0;
+            --shadow: 0 2px 8px rgba(26, 26, 26, 0.1);
+            --shadow-hover: 0 4px 16px rgba(26, 26, 26, 0.15);
+            --radius: 12px;
+            --radius-small: 8px;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; 
+            background: var(--gray-light);
+            color: var(--black);
+            line-height: 1.6;
+        }
+
+        /* Layout Components */
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 24px; 
+        }
+
+        .card { 
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .card-header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--black);
+            margin: 0;
+        }
+
+        /* Button System */
+        .btn { 
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius-small);
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .btn-primary { 
+            background: var(--orange-primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--orange-dark);
+        }
+
+        .btn-secondary { 
+            background: var(--white);
+            color: var(--gray-dark);
+            border: 1px solid var(--border);
+        }
+
+        .btn-danger { 
+            background: #DC3545;
+            color: var(--white);
+        }
+
+        .btn-success { 
+            background: #28A745;
+            color: var(--white);
+        }
+
+        .btn-warning {
+            background: #FFC107;
+            color: var(--black);
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        /* Form Elements */
+        .form-group { 
+            margin-bottom: 20px; 
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--gray-dark);
+            font-size: 14px;
+        }
+
+        .form-control { 
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-small);
+            font-size: 14px;
+            background: var(--white);
+            transition: border-color 0.2s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--orange-primary);
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        }
+
+        /* Table */
+        .table { 
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+        }
+        .table th, .table td { 
+            padding: 16px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        .table th { 
+            background: var(--gray-light);
+            font-weight: 600;
+            color: var(--gray-dark);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Header */
+        .header { 
+            background: var(--white);
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .header-content { 
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+        }
+
+        .logo { 
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--orange-primary);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-weight: 500;
+            color: var(--gray-dark);
+        }
+
+        /* Sidebar */
+        .sidebar { 
+            width: 280px;
+            background: var(--white);
+            min-height: calc(100vh - 80px);
+            padding: 24px;
+            border-right: 1px solid var(--border);
+        }
+
+        .sidebar-nav { 
+            list-style: none; 
+        }
+
+        .sidebar-nav li { 
+            margin-bottom: 4px; 
+        }
+
+        .sidebar-nav a { 
+            display: block;
+            padding: 16px 20px;
+            text-decoration: none;
+            color: var(--gray-dark);
+            border-radius: var(--radius-small);
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-nav a:hover {
+            background: var(--orange-light);
+            color: var(--orange-dark);
+        }
+
+        .sidebar-nav a.active { 
+            background: var(--orange-primary);
+            color: var(--white);
+        }
+
+        /* Layout */
+        .main-layout { 
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .content { 
+            flex: 1;
+            padding: 24px;
+        }
+
+        /* Grid System */
+        .grid { 
+            display: grid;
+            gap: 24px; 
+        }
+        .grid-2 { 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+        }
+        .grid-3 { 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+        }
+        .grid-4 { 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            text-align: center;
+            padding: 32px 24px;
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--orange-primary);
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--gray-medium);
+            font-weight: 500;
+        }
+
+        /* Progress Bar */
+        .progress { 
+            width: 100%;
+            height: 8px;
+            background: var(--gray-light);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+
+        .progress-bar { 
+            height: 100%;
+            background: var(--orange-primary);
+            transition: width 0.3s ease;
+        }
+
+        /* Modal */
+        .modal { 
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 26, 26, 0.6);
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.show { 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content { 
+            background: var(--white);
+            padding: 32px;
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--shadow-hover);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: var(--black);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        /* Alerts */
+        .alert { 
+            padding: 16px 20px;
+            border-radius: var(--radius-small);
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-danger { 
+            background: #F8D7DA;
+            color: #721C24;
+            border: 1px solid #F5C6CB;
+        }
+
+        .alert-success { 
+            background: #D4EDDA;
+            color: #155724;
+            border: 1px solid #C3E6CB;
+        }
+
+        .alert-warning {
+            background: #FFF3CD;
+            color: #856404;
+            border: 1px solid #FFEAA7;
+        }
+
+        /* Status Badges */
+        .status-badge { 
+            padding: 6px 12px;
+            border-radius: var(--radius-small);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-present { 
+            background: #D4EDDA;
+            color: #155724;
+        }
+
+        .status-absent { 
+            background: #F8D7DA;
+            color: #721C24;
+        }
+
+        .status-leave { 
+            background: #FFF3CD;
+            color: #856404;
+        }
+
+        .status-sick {
+            background: #F8D7DA;
+            color: #721C24;
+        }
+
+        .status-field-work {
+            background: #CCE5FF;
+            color: #004085;
+        }
+
+        /* Page Header */
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: var(--gray-medium);
+            font-size: 16px;
+        }
+
+        /* KPI Item */
+        .kpi-item {
+            padding: 20px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-small);
+            margin-bottom: 16px;
+            background: var(--white);
+        }
+
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .kpi-name {
+            font-weight: 600;
+            color: var(--black);
+        }
+
+        .kpi-target {
+            color: var(--gray-medium);
+            font-size: 14px;
+        }
+
+        .kpi-input-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .kpi-input {
+            width: 100px;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-small);
+            text-align: center;
+        }
+
+        .kpi-percentage {
+            padding: 8px 16px;
+            background: var(--orange-light);
+            border-radius: var(--radius-small);
+            font-weight: 700;
+            color: var(--orange-dark);
+            min-width: 60px;
+            text-align: center;
+        }
+
+        /* Attendance Options */
+        .attendance-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .attendance-btn {
+            padding: 20px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--white);
+            cursor: pointer;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .attendance-btn:hover {
+            border-color: var(--orange-primary);
+            background: var(--orange-light);
+        }
+
+        .attendance-btn.success {
+            border-color: #28A745;
+            color: #28A745;
+        }
+
+        .attendance-btn.success:hover {
+            background: #D4EDDA;
+        }
+
+        /* Login Page */
+        .login-container {
+            max-width: 400px;
+            margin: 80px auto;
+            padding: 24px;
+        }
+
+        .login-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 48px 32px;
+            box-shadow: var(--shadow-hover);
+            text-align: center;
+        }
+
+        .login-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 32px;
+        }
+
+        /* Tasks Section */
+        .task-item {
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-small);
+            margin-bottom: 12px;
+            background: var(--white);
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .task-title {
+            font-weight: 600;
+            color: var(--black);
+        }
+
+        .task-date {
+            font-size: 12px;
+            color: var(--gray-medium);
+        }
+
+        .task-description {
+            color: var(--gray-dark);
+            line-height: 1.5;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: var(--gray-light);
+            border-radius: var(--radius-small);
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray-dark);
+        }
+
+        .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-small);
+            background: var(--white);
+        }
+
+        /* Loading state */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* Action buttons */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Login Form Fix */
+        .login-form {
+            width: 100%;
+        }
+
+        /* Error message */
+        .error-message {
+            color: #721C24;
+            background: #F8D7DA;
+            padding: 8px 12px;
+            border-radius: var(--radius-small);
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: var(--radius-small);
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 999;
+            transition: all 0.3s ease;
+        }
+
+        .connection-status.online {
+            background: #D4EDDA;
+            color: #155724;
+        }
+
+        .connection-status.offline {
+            background: #F8D7DA;
+            color: #721C24;
+        }
+
+        .connection-status.syncing {
+            background: #FFF3CD;
+            color: #856404;
+        }
+
+        /* Install PWA Banner */
+        .install-banner {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: var(--orange-primary);
+            color: white;
+            padding: 16px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-hover);
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1000;
+        }
+
+        .install-banner.show {
+            display: flex;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .grid-3 { 
+                grid-template-columns: repeat(2, 1fr); 
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-layout { 
+                flex-direction: column; 
+            }
+            .sidebar { 
+                width: 100%;
+                min-height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+            .sidebar-nav { 
+                display: flex;
+                overflow-x: auto;
+                gap: 8px;
+            }
+            .sidebar-nav li { 
+                min-width: 140px;
+                margin-bottom: 0;
+            }
+            .grid-2, .grid-3, .grid-4 { 
+                grid-template-columns: 1fr; 
+            }
+            .container, .content {
+                padding: 16px;
+            }
+            .stat-number {
+                font-size: 36px;
+            }
+            .attendance-options {
+                grid-template-columns: 1fr;
+            }
+            .kpi-input-group, .filter-section {
+                flex-wrap: wrap;
+            }
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-content {
+                padding: 0 16px;
+            }
+            .logo {
+                font-size: 20px;
+            }
+            .user-info {
+                font-size: 14px;
+            }
+            .modal-content {
+                margin: 16px;
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Connection Status -->
+    <div id="connectionStatus" class="connection-status offline">Offline</div>
+    
+    <!-- Install PWA Banner -->
+    <div id="installBanner" class="install-banner">
+        <div>
+            <strong>Install App</strong>
+            <div style="font-size: 12px; opacity: 0.9;">Akses offline dan notifikasi</div>
+        </div>
+        <div>
+            <button id="installBtn" class="btn btn-secondary" style="margin-right: 8px;">Install</button>
+            <button id="dismissBtn" class="btn btn-secondary">✕</button>
+        </div>
+    </div>
+
+    <div id="app">
+        <!-- Login Screen -->
+        <div v-if="!currentUser" class="login-container">
+            <div class="login-card">
+                <h2 class="login-title">Absensi dan KPI Kantor Pusat Ibnu Katsir</h2>
+                <div v-if="loginError" class="error-message">{{ loginError }}</div>
+                <form @submit.prevent="login" class="login-form">
+                    <div class="form-group">
+                        <label class="form-label">Nama Pengguna</label>
+                        <input v-model="loginForm.username" type="text" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Kata Sandi</label>
+                        <input v-model="loginForm.password" type="password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;" :disabled="loading">
+                        {{ loading ? 'Memuat...' : 'Masuk' }}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Main Application -->
+        <template v-else>
+            <header class="header">
+                <div class="header-content">
+                    <div class="logo">Semoga diberkahi Allah, aamiin.</div>
+                    <div class="user-info">
+                        <span>{{ currentUser.name }}</span>
+                        <button @click="logout" class="btn btn-secondary">Keluar</button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="main-layout">
+                <!-- Admin Sidebar -->
+                <aside v-if="currentUser.role === 'admin'" class="sidebar">
+                    <ul class="sidebar-nav">
+                        <li><a href="#" :class="{active: currentView === 'dashboard'}" @click="setView('dashboard')">Dasbor</a></li>
+                        <li><a href="#" :class="{active: currentView === 'employees'}" @click="setView('employees')">Karyawan</a></li>
+                        <li><a href="#" :class="{active: currentView === 'tasks'}" @click="setView('tasks')">Manajemen KPI</a></li>
+                        <li><a href="#" :class="{active: currentView === 'reports'}" @click="setView('reports')">Laporan</a></li>
+                        <li><a href="#" :class="{active: currentView === 'employee-details'}" @click="setView('employee-details')">Detail Karyawan</a></li>
+                    </ul>
+                </aside>
+
+                <main class="content">
+                    <!-- Employee Dashboard -->
+                    <div v-if="currentUser.role === 'employee'">
+                        <div class="page-header">
+                            <h1 class="page-title">Dasbor pegawai</h1>
+                            <p class="page-subtitle">Assalamualaikum, {{ currentUser.name }}!</p>
+                        </div>
+                        
+                        <!-- Attendance -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Kehadiran - {{ formatDate(new Date()) }}</h3>
+                            </div>
+                            <div v-if="todayAttendance">
+                                <div class="alert alert-success">
+                                    <strong>Kehadiran Tercatat:</strong> {{ getStatusText(todayAttendance.status) }}
+                                    <div v-if="todayAttendance.note" style="margin-top: 8px;">
+                                        <strong>Catatan:</strong> {{ todayAttendance.note }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else>
+                                <div class="attendance-options">
+                                    <button @click="markAttendance('present')" class="attendance-btn success" :disabled="loading">
+                                        Hadir
+                                    </button>
+                                    <button @click="showLeaveModal('sick')" class="attendance-btn" :disabled="loading">
+                                        Sakit
+                                    </button>
+                                    <button @click="showLeaveModal('personal')" class="attendance-btn" :disabled="loading">
+                                        Izin
+                                    </button>
+                                    <button @click="showLeaveModal('field-work')" class="attendance-btn" :disabled="loading">
+                                        Tugas diluar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- KPIs -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Progres KPI - {{ monthNames[new Date().getMonth()] }} {{ new Date().getFullYear() }}</h3>
+                            </div>
+                            <div v-for="kpi in myKpis" :key="`kpi-${kpi.id}`" class="kpi-item">
+                                <div class="kpi-header">
+                                    <div class="kpi-name">{{ kpi.name }}</div>
+                                    <div class="kpi-target">Target: {{ kpi.target }}</div>
+                                </div>
+                                <div style="margin: 8px 0; color: var(--gray-medium);">{{ kpi.description }}</div>
+                                <div class="progress">
+                                    <div class="progress-bar" :style="{width: Math.min(100, (kpi.current / kpi.target) * 100) + '%'}"></div>
+                                </div>
+                                <div class="kpi-input-group">
+                                    <span>Progres:</span>
+                                    <input 
+                                        :value="kpi.current" 
+                                        @input="updateKpiProgress(kpi, $event)" 
+                                        type="number" 
+                                        class="kpi-input" 
+                                        min="0" 
+                                        :max="kpi.target"
+                                        step="1"
+                                        :disabled="loading"
+                                    >
+                                    <span>/ {{ kpi.target }}</span>
+                                    <div class="kpi-percentage">
+                                        {{ Math.round((kpi.current / kpi.target) * 100) }}%
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="myKpis.length === 0" style="text-align: center; color: var(--gray-medium); padding: 40px;">
+                                Belum ada KPI yang ditugaskan
+                            </div>
+                        </div>
+
+                        <!-- Daily Tasks -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Tugas Harian (Non-KPI)</h3>
+                            </div>
+                            
+                            <!-- Add Task Form -->
+                            <div class="form-group">
+                                <label class="form-label">Tambah Tugas Hari Ini</label>
+                                <textarea 
+                                    v-model="newTask.description" 
+                                    class="form-control" 
+                                    rows="3" 
+                                    placeholder="Jelaskan apa yang telah Anda selesaikan hari ini..."
+                                    :disabled="loading"
+                                ></textarea>
+                            </div>
+                            <button @click="addDailyTask" class="btn btn-primary" style="margin-bottom: 24px;" :disabled="loading || !newTask.description.trim()">
+                                {{ loading ? 'Menyimpan...' : 'Tambah Tugas' }}
+                            </button>
+
+                            <!-- Today's Tasks -->
+                            <div v-if="todayTasks && todayTasks.length > 0">
+                                <h4 style="margin-bottom: 16px;">Tugas Hari Ini:</h4>
+                                <div v-for="task in todayTasks" :key="task.id" class="task-item">
+                                    <div class="task-header">
+                                        <span class="task-date">{{ formatTime(task.timestamp) }}</span>
+                                        <button @click="deleteTask(task.id)" class="btn btn-danger btn-small" :disabled="loading">Hapus</button>
+                                    </div>
+                                    <div class="task-description">{{ task.description }}</div>
+                                </div>
+                            </div>
+                            <div v-else style="text-align: center; color: var(--gray-medium); padding: 40px;">
+                                Belum ada tugas yang ditambahkan hari ini
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Admin Views -->
+                    <div v-if="currentUser.role === 'admin'">
+                        <!-- Dashboard -->
+                        <div v-if="currentView === 'dashboard'">
+                            <div class="page-header">
+                                <h1 class="page-title">Dasbor Admin</h1>
+                                <p class="page-subtitle">Bismillah</p>
+                            </div>
+                            <div class="grid grid-3">
+                                <div class="card stat-card">
+                                    <div class="stat-number">{{ employees ? employees.length : 0 }}</div>
+                                    <div class="stat-label">Total Karyawan</div>
+                                </div>
+                                <div class="card stat-card">
+                                    <div class="stat-number">{{ presentToday || 0 }}</div>
+                                    <div class="stat-label">Hadir Hari Ini</div>
+                                </div>
+                                <div class="card stat-card">
+                                    <div class="stat-number">{{ kpis ? kpis.length : 0 }}</div>
+                                    <div class="stat-label">KPI Aktif</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Employees Management -->
+                        <div v-if="currentView === 'employees'">
+                            <div class="page-header">
+                                <h1 class="page-title">Manajemen Karyawan</h1>
+                                <p class="page-subtitle">Kelola anggota tim Anda</p>
+                            </div>
+
+                            <!-- Add Employee -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">{{ editingEmployee ? 'Edit Karyawan' : 'Tambah Karyawan Baru' }}</h3>
+                                </div>
+                                <form @submit.prevent="saveEmployee">
+                                    <div class="grid grid-2">
+                                        <div class="form-group">
+                                            <label class="form-label">Nama Lengkap</label>
+                                            <input v-model="newEmployee.name" type="text" class="form-control" required :disabled="loading">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Nama Pengguna</label>
+                                            <input v-model="newEmployee.username" type="text" class="form-control" required :disabled="loading">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Kata Sandi</label>
+                                            <input v-model="newEmployee.password" type="password" class="form-control" required :disabled="loading">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Posisi</label>
+                                            <select v-model="newEmployee.role" class="form-control" required :disabled="loading">
+                                                <option value="employee">Karyawan</option>
+                                                <option value="admin">Admin</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="action-buttons">
+                                        <button type="submit" class="btn btn-primary" :disabled="loading">
+                                            {{ loading ? 'Menyimpan...' : (editingEmployee ? 'Perbarui Karyawan' : 'Tambah Karyawan') }}
+                                        </button>
+                                        <button v-if="editingEmployee" @click="cancelEdit" type="button" class="btn btn-secondary" :disabled="loading">
+                                            Batal Edit
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Employee List -->
+                            <div class="card" v-if="allUsers && allUsers.length > 0">
+                                <div class="card-header">
+                                    <h3 class="card-title">Daftar Karyawan</h3>
+                                </div>
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Nama</th>
+                                            <th>Nama Pengguna</th>
+                                            <th>Peran</th>
+                                            <th>Status Hari Ini</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="emp in allUsers" :key="emp.id">
+                                            <td style="font-weight: 600;">{{ emp.name }}</td>
+                                            <td>{{ emp.username }}</td>
+                                            <td>{{ emp.role === 'admin' ? 'Admin' : 'Karyawan' }}</td>
+                                            <td>
+                                                <span v-if="emp.role === 'employee'" :class="['status-badge', getAttendanceStatus(emp.id)]">
+                                                    {{ getAttendanceStatusText(emp.id) }}
+                                                </span>
+                                                <span v-else class="status-badge" style="background: #E3F2FD; color: #1976D2;">Admin</span>
+                                            </td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button @click="editEmployee(emp)" class="btn btn-warning btn-small" :disabled="loading">Edit</button>
+                                                    <button v-if="emp.id !== currentUser.id" @click="deleteEmployee(emp.id)" class="btn btn-danger btn-small" :disabled="loading">Hapus</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- KPI Management -->
+                        <div v-if="currentView === 'tasks'">
+                            <div class="page-header">
+                                <h1 class="page-title">Manajemen KPI</h1>
+                                <p class="page-subtitle">Buat dan kelola Indikator Kinerja Utama</p>
+                            </div>
+
+                            <!-- Add KPI -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Tambah KPI Baru</h3>
+                                </div>
+                                <form @submit.prevent="addKpi">
+                                    <div class="grid grid-2">
+                                        <div class="form-group">
+                                            <label class="form-label">Nama KPI</label>
+                                            <input v-model="newKpi.name" type="text" class="form-control" required :disabled="loading">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Target</label>
+                                            <input v-model.number="newKpi.target" type="number" class="form-control" required :disabled="loading">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Tugaskan Kepada</label>
+                                            <select v-model="newKpi.assignedTo" class="form-control" multiple :disabled="loading">
+                                                <option v-for="emp in employees" :key="emp.id" :value="emp.id">{{ emp.name }}</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Deskripsi</label>
+                                            <input v-model="newKpi.description" type="text" class="form-control" :disabled="loading">
+                                        </div>
+                                        <div style="grid-column: span 2;">
+                                            <button type="submit" class="btn btn-primary" :disabled="loading">
+                                                {{ loading ? 'Menyimpan...' : 'Tambah KPI' }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- KPI List -->
+                            <div class="card" v-if="kpis && kpis.length > 0">
+                                <div class="card-header">
+                                    <h3 class="card-title">KPI Saat Ini</h3>
+                                </div>
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Nama KPI</th>
+                                            <th>Target</th>
+                                            <th>Ditugaskan Kepada</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="kpi in kpis" :key="kpi.id">
+                                            <td style="font-weight: 600;">{{ kpi.name }}</td>
+                                            <td>{{ kpi.target }}</td>
+                                            <td>{{ getAssignedNames(kpi.assignedTo) }}</td>
+                                            <td>
+                                                <button @click="deleteKpi(kpi.id)" class="btn btn-danger btn-small" :disabled="loading">Hapus</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Reports with Month Filter -->
+                        <div v-if="currentView === 'reports'">
+                            <div class="page-header">
+                                <h1 class="page-title">Laporan</h1>
+                                <p class="page-subtitle">Laporan kehadiran dan kinerja</p>
+                            </div>
+
+                            <!-- Month Filter -->
+                            <div class="filter-section">
+                                <div class="filter-group">
+                                    <label>Filter Bulan</label>
+                                    <select v-model="reportMonth" class="form-control" :disabled="loading">
+                                        <option v-for="(month, index) in monthNames" :key="index" :value="index">{{ month }} {{ reportYear }}</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Tahun</label>
+                                    <select v-model="reportYear" class="form-control" :disabled="loading">
+                                        <option v-for="year in availableYears" :key="year" :value="year">{{ year }}</option>
+                                    </select>
+                                </div>
+                                <button @click="refreshReports" class="btn btn-primary" :disabled="loading">
+                                    {{ loading ? 'Memuat...' : 'Segarkan' }}
+                                </button>
+                            </div>
+                            
+                            <!-- Attendance Report -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Laporan Kehadiran - {{ monthNames[reportMonth] }} {{ reportYear }}</h3>
+                                </div>
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Karyawan</th>
+                                            <th>Status</th>
+                                            <th>Tanggal</th>
+                                            <th>Waktu</th>
+                                            <th>Catatan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="record in filteredAttendanceReport" :key="record.id">
+                                            <td style="font-weight: 600;">{{ getUserName(record.userId) }}</td>
+                                            <td><span :class="['status-badge', getStatusClass(record.status)]">{{ getStatusText(record.status) }}</span></td>
+                                            <td>{{ formatDate(new Date(record.timestamp)) }}</td>
+                                            <td>{{ formatTime(record.timestamp) }}</td>
+                                            <td>{{ record.note || '-' }}</td>
+                                        </tr>
+                                        <tr v-if="!filteredAttendanceReport || filteredAttendanceReport.length === 0">
+                                            <td colspan="5" style="text-align: center; color: var(--gray-medium); padding: 40px;">
+                                                Tidak ada catatan kehadiran untuk {{ monthNames[reportMonth] }} {{ reportYear }}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- KPI Report -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Laporan Progres KPI - {{ monthNames[reportMonth] }} {{ reportYear }}</h3>
+                                </div>
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Karyawan</th>
+                                            <th>KPI</th>
+                                            <th>Progres</th>
+                                            <th>Persentase Selesai</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="report in filteredKpiReport" :key="`${report.userId}-${report.kpiId}`">
+                                            <td style="font-weight: 600;">{{ getUserName(report.userId) }}</td>
+                                            <td>{{ getKpiName(report.kpiId) }}</td>
+                                            <td>{{ report.current }} / {{ report.target }}</td>
+                                            <td>
+                                                <div style="display: flex; align-items: center; gap: 12px;">
+                                                    <div class="progress" style="flex: 1;">
+                                                        <div class="progress-bar" :style="{width: Math.min(100, (report.current / report.target) * 100) + '%'}"></div>
+                                                    </div>
+                                                    <span style="font-weight: 600;">{{ Math.round((report.current / report.target) * 100) }}%</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr v-if="!filteredKpiReport || filteredKpiReport.length === 0">
+                                            <td colspan="4" style="text-align: center; color: var(--gray-medium); padding: 40px;">
+                                                Tidak ada data KPI tersedia untuk {{ monthNames[reportMonth] }} {{ reportYear }}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Employee Details with Tasks -->
+                        <div v-if="currentView === 'employee-details'">
+                            <div class="page-header">
+                                <h1 class="page-title">Detail Karyawan</h1>
+                                <p class="page-subtitle">Laporan bulanan terperinci untuk setiap karyawan</p>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3 class="card-title">Pilih Karyawan & Bulan</h3>
+                                </div>
+                                <div class="grid grid-2">
+                                    <div class="form-group">
+                                        <label class="form-label">Karyawan</label>
+                                        <select v-model="selectedEmployeeId" class="form-control" @change="refreshEmployeeDetails" :disabled="loading">
+                                            <option value="">Pilih Karyawan</option>
+                                            <option v-for="emp in employees || []" :key="emp.id" :value="emp.id">{{ emp.name }}</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Bulan</label>
+                                        <select v-model="selectedMonth" class="form-control" @change="refreshEmployeeDetails" :disabled="loading">
+                                            <option v-for="(month, index) in monthNames" :key="index" :value="index">{{ month }} {{ new Date().getFullYear() }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <template v-if="selectedEmployeeId">
+                                <!-- Attendance Details -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">{{ getSelectedEmployeeName() }} - Detail Kehadiran ({{ monthNames[selectedMonth] }})</h3>
+                                    </div>
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Tanggal</th>
+                                                <th>Status</th>
+                                                <th>Waktu</th>
+                                                <th>Catatan</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="record in selectedEmployeeAttendance || []" :key="record.id">
+                                                <td>{{ formatDate(new Date(record.timestamp)) }}</td>
+                                                <td><span :class="['status-badge', getStatusClass(record.status)]">{{ getStatusText(record.status) }}</span></td>
+                                                <td>{{ formatTime(record.timestamp) }}</td>
+                                                <td>{{ record.note || '-' }}</td>
+                                            </tr>
+                                            <tr v-if="!selectedEmployeeAttendance || selectedEmployeeAttendance.length === 0">
+                                                <td colspan="4" style="text-align: center; color: var(--gray-medium); padding: 40px;">
+                                                    Tidak ada catatan kehadiran untuk bulan ini
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- KPI Details -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Detail Progres KPI</h3>
+                                    </div>
+                                    <div v-for="kpi in selectedEmployeeKpis || []" :key="`selected-kpi-${kpi.id}`" class="kpi-item">
+                                        <div class="kpi-header">
+                                            <div class="kpi-name">{{ kpi.name }}</div>
+                                            <div class="kpi-target">Target: {{ kpi.target }}</div>
+                                        </div>
+                                        <div style="margin: 8px 0;">{{ kpi.description }}</div>
+                                        <div class="progress">
+                                            <div class="progress-bar" :style="{width: Math.min(100, (kpi.current / kpi.target * 100)) + '%'}"></div>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+                                            <span>{{ kpi.current }} / {{ kpi.target }}</span>
+                                            <span style="font-weight: 600;">{{ Math.round((kpi.current / kpi.target) * 100) }}%</span>
+                                        </div>
+                                    </div>
+                                    <div v-if="!selectedEmployeeKpis || selectedEmployeeKpis.length === 0" style="text-align: center; color: var(--gray-medium); padding: 40px;">
+                                        Tidak ada KPI yang ditugaskan kepada karyawan ini
+                                    </div>
+                                </div>
+
+                                <!-- Daily Tasks Details -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h3 class="card-title">Tugas Harian (Non-KPI) - {{ monthNames[selectedMonth] }}</h3>
+                                    </div>
+                                    <div v-if="selectedEmployeeTasks && selectedEmployeeTasks.length > 0">
+                                        <div v-for="task in selectedEmployeeTasks" :key="`task-${task.id}`" class="task-item">
+                                            <div class="task-header">
+                                                <span class="task-date">{{ formatDate(new Date(task.timestamp)) }} - {{ formatTime(task.timestamp) }}</span>
+                                            </div>
+                                            <div class="task-description">{{ task.description }}</div>
+                                        </div>
+                                    </div>
+                                    <div v-else style="text-align: center; color: var(--gray-medium); padding: 40px;">
+                                        Tidak ada tugas harian yang dicatat untuk bulan ini
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </template>
+
+        <!-- Leave Request Modal -->
+        <div class="modal" :class="{show: showModal}" @click.self="closeModal">
+            <div class="modal-content">
+                <h3 class="modal-header">{{ getLeaveTitle() }}</h3>
+                <form @submit.prevent="submitLeaveRequest">
+                    <div class="form-group">
+                        <label class="form-label">Alasan / Catatan</label>
+                        <textarea v-model="leaveRequest.note" class="form-control" rows="4" required placeholder="Harap berikan detail..." :disabled="loading"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" @click="closeModal" class="btn btn-secondary" :disabled="loading">Batal</button>
+                        <button type="submit" class="btn btn-primary" :disabled="loading">
+                            {{ loading ? 'Mengirim...' : 'Kirim Permintaan' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.0/dist/umd/supabase.min.js"></script>
+    <!-- Vue.js -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <script>
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((registration) => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch((registrationError) => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+
+        // PWA Install
+        let deferredPrompt;
+        const installBanner = document.getElementById('installBanner');
+        const installBtn = document.getElementById('installBtn');
+        const dismissBtn = document.getElementById('dismissBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (!localStorage.getItem('pwa-dismissed')) {
+                installBanner.classList.add('show');
+            }
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                deferredPrompt = null;
+                installBanner.classList.remove('show');
+            }
+        });
+
+        dismissBtn.addEventListener('click', () => {
+            installBanner.classList.remove('show');
+            localStorage.setItem('pwa-dismissed', 'true');
+        });
+
+        // Supabase Configuration
+        const SUPABASE_CONFIG = {
+            url: 'https://kciuvlxbdbcdzfdnqwgx.supabase.co', // Ganti dengan URL Supabase Anda
+            key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjaXV2bHhiZGJjZHpmZG5xd2d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyMjIzNjcsImV4cCI6MjA3MDc5ODM2N30.dOGvhVgQD-o1g9FrSeEihRPZApJwUlVS7dwzZzPnKdc' // Ganti dengan anon key Supabase Anda
+        };
+
+        const { createApp, ref, computed, onMounted, reactive, nextTick, watch } = Vue;
+
+        // Enhanced Store dengan Supabase
+        class HRISStore {
+            constructor() {
+                this.supabase = null;
+                this.data = reactive(this.getInitialData());
+                this.isOnline = ref(navigator.onLine);
+                this.isSyncing = ref(false);
+                this.initSupabase();
+                this.setupNetworkListeners();
+                this.loadFromLocal();
+                
+                // Watch perubahan data untuk sync
+                watch(() => this.data, (newData) => {
+                    this.saveToLocal();
+                    if (this.isOnline.value) {
+                        this.debounceSync();
+                    }
+                }, { deep: true });
+            }
+
+            initSupabase() {
+                try {
+                    if (SUPABASE_CONFIG.url !== 'YOUR_SUPABASE_URL' && SUPABASE_CONFIG.key !== 'YOUR_SUPABASE_ANON_KEY') {
+                        this.supabase = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+                        console.log('Supabase initialized');
+                    } else {
+                        console.warn('Please configure Supabase URL and key');
+                    }
+                } catch (error) {
+                    console.error('Supabase initialization error:', error);
+                }
+            }
+
+            setupNetworkListeners() {
+                window.addEventListener('online', () => {
+                    this.isOnline.value = true;
+                    this.updateConnectionStatus();
+                    this.syncWithServer();
+                });
+
+                window.addEventListener('offline', () => {
+                    this.isOnline.value = false;
+                    this.updateConnectionStatus();
+                });
+
+                this.updateConnectionStatus();
+            }
+
+            updateConnectionStatus() {
+                const statusEl = document.getElementById('connectionStatus');
+                if (this.isSyncing.value) {
+                    statusEl.className = 'connection-status syncing';
+                    statusEl.textContent = 'Sinkronisasi...';
+                } else if (this.isOnline.value) {
+                    statusEl.className = 'connection-status online';
+                    statusEl.textContent = 'Online';
+                } else {
+                    statusEl.className = 'connection-status offline';
+                    statusEl.textContent = 'Offline';
+                }
+            }
+
+            debounceSync = this.debounce(() => {
+                this.syncWithServer();
+            }, 2000);
+
+            debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+
+            async syncWithServer() {
+                if (!this.supabase || !this.isOnline.value) return;
+
+                try {
+                    this.isSyncing.value = true;
+                    this.updateConnectionStatus();
+
+                    // Sync users
+                    await this.syncTable('users', this.data.users);
+                    
+                    // Sync KPIs
+                    await this.syncTable('kpis', this.data.kpis);
+                    
+                    // Sync attendance
+                    await this.syncTable('attendance', this.data.attendance);
+                    
+                    // Sync daily tasks
+                    await this.syncTable('daily_tasks', this.data.dailyTasks);
+                    
+                    // Sync KPI progress
+                    await this.syncKpiProgress();
+
+                    console.log('Sync completed');
+                } catch (error) {
+                    console.error('Sync error:', error);
+                } finally {
+                    this.isSyncing.value = false;
+                    this.updateConnectionStatus();
+                }
+            }
+
+            async syncTable(tableName, localData) {
+                try {
+                    // Upload local changes
+                    for (const item of localData) {
+                        const { data, error } = await this.supabase
+                            .from(tableName)
+                            .upsert(item, { onConflict: 'id' });
+                        
+                        if (error) throw error;
+                    }
+
+                    // Download server changes
+                    const { data: serverData, error } = await this.supabase
+                        .from(tableName)
+                        .select('*');
+
+                    if (error) throw error;
+
+                    // Merge dengan data lokal
+                    if (serverData) {
+                        this.mergeData(localData, serverData);
+                    }
+                } catch (error) {
+                    console.error(`Error syncing ${tableName}:`, error);
+                }
+            }
+
+            async syncKpiProgress() {
+                try {
+                    // Convert kpiProgress object to array for sync
+                    const progressArray = Object.entries(this.data.kpiProgress).map(([key, value]) => ({
+                        id: key,
+                        progress_data: value
+                    }));
+
+                    await this.syncTable('kpi_progress', progressArray);
+
+                    // Download and convert back to object
+                    const { data: serverProgress, error } = await this.supabase
+                        .from('kpi_progress')
+                        .select('*');
+
+                    if (error) throw error;
+
+                    if (serverProgress) {
+                        const progressObj = {};
+                        serverProgress.forEach(item => {
+                            progressObj[item.id] = item.progress_data;
+                        });
+                        Object.assign(this.data.kpiProgress, progressObj);
+                    }
+                } catch (error) {
+                    console.error('Error syncing KPI progress:', error);
+                }
+            }
+
+            mergeData(localArray, serverArray) {
+                const serverMap = new Map(serverArray.map(item => [item.id, item]));
+                
+                // Update existing items or add new ones from server
+                serverArray.forEach(serverItem => {
+                    const localIndex = localArray.findIndex(item => item.id === serverItem.id);
+                    if (localIndex >= 0) {
+                        // Update if server has newer timestamp
+                        const localItem = localArray[localIndex];
+                        const serverTime = new Date(serverItem.updated_at || serverItem.timestamp || 0);
+                        const localTime = new Date(localItem.updated_at || localItem.timestamp || 0);
+                        
+                        if (serverTime > localTime) {
+                            Object.assign(localArray[localIndex], serverItem);
+                        }
+                    } else {
+                        // Add new item from server
+                        localArray.push(serverItem);
+                    }
+                });
+            }
+
+            loadFromLocal() {
+                try {
+                    const stored = localStorage.getItem('hris-data');
+                    if (stored) {
+                        const loadedData = JSON.parse(stored);
+                        Object.assign(this.data, loadedData);
+                        console.log('Data loaded from localStorage');
+                    }
+                } catch (error) {
+                    console.error('Error loading from localStorage:', error);
+                }
+            }
+
+            saveToLocal() {
+                try {
+                    localStorage.setItem('hris-data', JSON.stringify(this.data));
+                } catch (error) {
+                    console.error('Error saving to localStorage:', error);
+                }
+            }
+
+            getInitialData() {
+                return {
+                    users: [
+                        { id: 1, name: 'Admin User', username: 'admin', password: 'admin123', role: 'admin', created_at: new Date().toISOString() },
+                        { id: 2, name: 'Syafiq', username: 'Syafiq', password: '1', role: 'employee', created_at: new Date().toISOString() },
+                    ],
+                    kpis: [
+                        { id: 1, name: 'Target bikin konten nganu', target: 100, assignedTo: [2], description: 'mari', created_at: new Date().toISOString() },
+                    ],
+                    attendance: [],
+                    dailyTasks: [],
+                    kpiProgress: {}
+                };
+            }
+
+            // CRUD Operations with timestamps
+            getUsers() { 
+                return Array.isArray(this.data.users) ? this.data.users : [];
+            }
+            
+            getKpis() { 
+                return Array.isArray(this.data.kpis) ? this.data.kpis : [];
+            }
+            
+            getAttendance() { 
+                return Array.isArray(this.data.attendance) ? this.data.attendance : [];
+            }
+            
+            getDailyTasks() { 
+                return Array.isArray(this.data.dailyTasks) ? this.data.dailyTasks : [];
+            }
+
+            addUser(user) {
+                if (!this.data.users) this.data.users = [];
+                user.id = Date.now();
+                user.created_at = new Date().toISOString();
+                user.updated_at = new Date().toISOString();
+                this.data.users.push(user);
+            }
+
+            updateUser(userId, userData) {
+                if (!this.data.users) return;
+                const index = this.data.users.findIndex(u => u.id === userId);
+                if (index > -1) {
+                    Object.assign(this.data.users[index], userData, { updated_at: new Date().toISOString() });
+                }
+            }
+
+            deleteUser(userId) {
+                if (!this.data.users) return;
+                const index = this.data.users.findIndex(u => u.id === userId);
+                if (index > -1) {
+                    this.data.users.splice(index, 1);
+                    // Clean up related data
+                    if (this.data.attendance) {
+                        this.data.attendance = this.data.attendance.filter(a => a.userId !== userId);
+                    }
+                    if (this.data.dailyTasks) {
+                        this.data.dailyTasks = this.data.dailyTasks.filter(t => t.userId !== userId);
+                    }
+                    // Clean up KPI progress
+                    if (this.data.kpiProgress) {
+                        Object.keys(this.data.kpiProgress).forEach(key => {
+                            if (key.startsWith(`${userId}-`)) {
+                                delete this.data.kpiProgress[key];
+                            }
+                        });
+                    }
+                }
+            }
+
+            addDailyTask(task) {
+                if (!this.data.dailyTasks) this.data.dailyTasks = [];
+                task.id = Date.now();
+                task.timestamp = new Date().toISOString();
+                task.created_at = new Date().toISOString();
+                this.data.dailyTasks.push(task);
+            }
+
+            deleteDailyTask(taskId) {
+                if (!this.data.dailyTasks) return;
+                const index = this.data.dailyTasks.findIndex(t => t.id === taskId);
+                if (index > -1) {
+                    this.data.dailyTasks.splice(index, 1);
+                }
+            }
+
+            addKpi(kpi) {
+                if (!this.data.kpis) this.data.kpis = [];
+                kpi.id = Date.now();
+                kpi.created_at = new Date().toISOString();
+                kpi.updated_at = new Date().toISOString();
+                this.data.kpis.push(kpi);
+            }
+
+            addAttendance(record) {
+                if (!this.data.attendance) this.data.attendance = [];
+                record.id = Date.now();
+                record.timestamp = new Date().toISOString();
+                record.created_at = new Date().toISOString();
+                this.data.attendance.push(record);
+            }
+
+            updateKpiProgress(userId, kpiId, current, month, year) {
+                if (!this.data.kpiProgress) this.data.kpiProgress = {};
+                const key = `${userId}-${kpiId}-${month}-${year}`;
+                this.data.kpiProgress[key] = {
+                    current: Number(current),
+                    timestamp: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+            }
+
+            deleteKpi(kpiId) {
+                if (!this.data.kpis) return;
+                const index = this.data.kpis.findIndex(k => k.id === kpiId);
+                if (index > -1) {
+                    this.data.kpis.splice(index, 1);
+                }
+                if (this.data.kpiProgress) {
+                    Object.keys(this.data.kpiProgress).forEach(key => {
+                        if (key.includes(`-${kpiId}-`)) {
+                            delete this.data.kpiProgress[key];
+                        }
+                    });
+                }
+            }
+
+            getUserById(id) {
+                if (!this.data.users) return null;
+                return this.data.users.find(u => u.id === id);
+            }
+        }
+
+        // Global store instance
+        const store = new HRISStore();
+
+        createApp({
+            setup() {
+                // Reactive state
+                const currentUser = ref(null);
+                const currentView = ref('dashboard');
+                const loginForm = reactive({ username: '', password: '' });
+                const loginError = ref('');
+                const showModal = ref(false);
+                const leaveRequest = reactive({ type: '', note: '' });
+                const newKpi = reactive({ name: '', target: 0, assignedTo: [], description: '' });
+                const newTask = reactive({ description: '' });
+                const loading = ref(false);
+                
+                // Employee management
+                const newEmployee = reactive({ name: '', username: '', password: '', role: 'employee' });
+                const editingEmployee = ref(null);
+                
+                // Employee details state
+                const selectedEmployeeId = ref('');
+                const selectedMonth = ref(new Date().getMonth());
+                
+                // Reports filter
+                const reportMonth = ref(new Date().getMonth());
+                const reportYear = ref(new Date().getFullYear());
+                
+                // Month names in Indonesian
+                const monthNames = [
+                    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                ];
+
+                // Available years for filter
+                const availableYears = computed(() => {
+                    const currentYear = new Date().getFullYear();
+                    return [currentYear - 1, currentYear, currentYear + 1];
+                });
+
+                // Computed properties
+                const allUsers = computed(() => {
+                    try {
+                        const users = store.getUsers();
+                        return Array.isArray(users) ? users : [];
+                    } catch (error) {
+                        console.error('Error computing allUsers:', error);
+                        return [];
+                    }
+                });
+                
+                const employees = computed(() => {
+                    try {
+                        const users = allUsers.value;
+                        return Array.isArray(users) ? users.filter(u => u.role === 'employee') : [];
+                    } catch (error) {
+                        console.error('Error computing employees:', error);
+                        return [];
+                    }
+                });
+                
+                const kpis = computed(() => {
+                    try {
+                        const kpisData = store.getKpis();
+                        return Array.isArray(kpisData) ? kpisData : [];
+                    } catch (error) {
+                        console.error('Error computing kpis:', error);
+                        return [];
+                    }
+                });
+                
+                const attendance = computed(() => {
+                    try {
+                        const attendanceData = store.getAttendance();
+                        return Array.isArray(attendanceData) ? attendanceData : [];
+                    } catch (error) {
+                        console.error('Error computing attendance:', error);
+                        return [];
+                    }
+                });
+                
+                const dailyTasks = computed(() => {
+                    try {
+                        const tasksData = store.getDailyTasks();
+                        return Array.isArray(tasksData) ? tasksData : [];
+                    } catch (error) {
+                        console.error('Error computing dailyTasks:', error);
+                        return [];
+                    }
+                });
+
+                // KPI computation
+                const getKpiKey = (userId, kpiId, month = new Date().getMonth(), year = new Date().getFullYear()) => {
+                    return `${userId}-${kpiId}-${month}-${year}`;
+                };
+
+                const myKpis = computed(() => {
+                    try {
+                        if (!currentUser.value || currentUser.value.role !== 'employee') return [];
+                        
+                        const currentMonth = new Date().getMonth();
+                        const currentYear = new Date().getFullYear();
+                        const kpisData = kpis.value;
+                        
+                        if (!Array.isArray(kpisData)) return [];
+                        
+                        return kpisData
+                            .filter(kpi => Array.isArray(kpi.assignedTo) && kpi.assignedTo.includes(currentUser.value.id))
+                            .map(kpi => {
+                                const progressKey = getKpiKey(currentUser.value.id, kpi.id, currentMonth, currentYear);
+                                const progress = store.data.kpiProgress?.[progressKey];
+                                return {
+                                    ...kpi,
+                                    current: progress?.current || 0
+                                };
+                            });
+                    } catch (error) {
+                        console.error('Error computing myKpis:', error);
+                        return [];
+                    }
+                });
+
+                // Today's tasks
+                const todayTasks = computed(() => {
+                    try {
+                        if (!currentUser.value) return [];
+                        const today = new Date().toDateString();
+                        const tasksData = dailyTasks.value;
+                        
+                        if (!Array.isArray(tasksData)) return [];
+                        
+                        return tasksData.filter(task => 
+                            task.userId === currentUser.value.id &&
+                            new Date(task.timestamp).toDateString() === today
+                        ).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    } catch (error) {
+                        console.error('Error computing todayTasks:', error);
+                        return [];
+                    }
+                });
+
+                const todayAttendance = computed(() => {
+                    try {
+                        if (!currentUser.value) return null;
+                        const today = new Date().toDateString();
+                        const attendanceData = attendance.value;
+                        
+                        if (!Array.isArray(attendanceData)) return null;
+                        
+                        return attendanceData.find(a => 
+                            a.userId === currentUser.value.id && 
+                            new Date(a.timestamp).toDateString() === today
+                        );
+                    } catch (error) {
+                        console.error('Error computing todayAttendance:', error);
+                        return null;
+                    }
+                });
+
+                const presentToday = computed(() => {
+                    try {
+                        const today = new Date().toDateString();
+                        const attendanceData = attendance.value;
+                        
+                        if (!Array.isArray(attendanceData)) return 0;
+                        
+                        return attendanceData.filter(a => 
+                            new Date(a.timestamp).toDateString() === today && 
+                            a.status === 'present'
+                        ).length;
+                    } catch (error) {
+                        console.error('Error computing presentToday:', error);
+                        return 0;
+                    }
+                });
+
+                // Filtered reports
+                const filteredAttendanceReport = computed(() => {
+                    try {
+                        const attendanceData = attendance.value;
+                        if (!Array.isArray(attendanceData)) return [];
+                        
+                        return attendanceData.filter(a => {
+                            try {
+                                const attendanceDate = new Date(a.timestamp);
+                                return attendanceDate.getMonth() === reportMonth.value && 
+                                       attendanceDate.getFullYear() === reportYear.value;
+                            } catch (dateError) {
+                                console.error('Error parsing attendance date:', dateError);
+                                return false;
+                            }
+                        }).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    } catch (error) {
+                        console.error('Error computing filteredAttendanceReport:', error);
+                        return [];
+                    }
+                });
+
+                const filteredKpiReport = computed(() => {
+                    try {
+                        const report = [];
+                        const kpisData = kpis.value;
+                        
+                        if (!Array.isArray(kpisData)) return [];
+                        
+                        kpisData.forEach(kpi => {
+                            if (Array.isArray(kpi.assignedTo)) {
+                                kpi.assignedTo.forEach(userId => {
+                                    const progressKey = getKpiKey(userId, kpi.id, reportMonth.value, reportYear.value);
+                                    const progress = store.data.kpiProgress?.[progressKey];
+                                    report.push({
+                                        userId,
+                                        kpiId: kpi.id,
+                                        current: progress?.current || 0,
+                                        target: kpi.target
+                                    });
+                                });
+                            }
+                        });
+                        return report;
+                    } catch (error) {
+                        console.error('Error computing filteredKpiReport:', error);
+                        return [];
+                    }
+                });
+
+                // Employee details computed
+                const selectedEmployeeAttendance = computed(() => {
+                    try {
+                        if (!selectedEmployeeId.value) return [];
+                        const userId = parseInt(selectedEmployeeId.value);
+                        if (isNaN(userId)) return [];
+                        
+                        const attendanceData = attendance.value;
+                        if (!Array.isArray(attendanceData)) return [];
+                        
+                        return attendanceData.filter(a => {
+                            try {
+                                const attendanceDate = new Date(a.timestamp);
+                                return a.userId === userId && 
+                                       attendanceDate.getMonth() === selectedMonth.value &&
+                                       attendanceDate.getFullYear() === new Date().getFullYear();
+                            } catch (dateError) {
+                                console.error('Error parsing date in selectedEmployeeAttendance:', dateError);
+                                return false;
+                            }
+                        }).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    } catch (error) {
+                        console.error('Error computing selectedEmployeeAttendance:', error);
+                        return [];
+                    }
+                });
+
+                const selectedEmployeeKpis = computed(() => {
+                    try {
+                        if (!selectedEmployeeId.value) return [];
+                        const userId = parseInt(selectedEmployeeId.value);
+                        if (isNaN(userId)) return [];
+                        
+                        const currentYear = new Date().getFullYear();
+                        const kpisData = kpis.value;
+                        
+                        if (!Array.isArray(kpisData)) return [];
+                        
+                        return kpisData
+                            .filter(kpi => Array.isArray(kpi.assignedTo) && kpi.assignedTo.includes(userId))
+                            .map(kpi => {
+                                const progressKey = getKpiKey(userId, kpi.id, selectedMonth.value, currentYear);
+                                return {
+                                    ...kpi,
+                                    current: store.data.kpiProgress?.[progressKey]?.current || 0
+                                };
+                            });
+                    } catch (error) {
+                        console.error('Error computing selectedEmployeeKpis:', error);
+                        return [];
+                    }
+                });
+
+                const selectedEmployeeTasks = computed(() => {
+                    try {
+                        if (!selectedEmployeeId.value) return [];
+                        const userId = parseInt(selectedEmployeeId.value);
+                        if (isNaN(userId)) return [];
+                        
+                        const tasksData = dailyTasks.value;
+                        if (!Array.isArray(tasksData)) return [];
+                        
+                        return tasksData.filter(task => {
+                            try {
+                                const taskDate = new Date(task.timestamp);
+                                return task.userId === userId && 
+                                       taskDate.getMonth() === selectedMonth.value &&
+                                       taskDate.getFullYear() === new Date().getFullYear();
+                            } catch (dateError) {
+                                console.error('Error parsing task date:', dateError);
+                                return false;
+                            }
+                        }).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    } catch (error) {
+                        console.error('Error computing selectedEmployeeTasks:', error);
+                        return [];
+                    }
+                });
+
+                // Methods
+                const login = async () => {
+                    try {
+                        loading.value = true;
+                        loginError.value = '';
+                        
+                        if (!loginForm.username?.trim() || !loginForm.password?.trim()) {
+                            loginError.value = 'Harap masukkan nama pengguna dan kata sandi';
+                            return;
+                        }
+                        
+                        const users = allUsers.value;
+                        if (!Array.isArray(users)) {
+                            loginError.value = 'Error sistem: Data pengguna tidak tersedia';
+                            return;
+                        }
+                        
+                        const user = users.find(u => 
+                            u.username === loginForm.username.trim() && 
+                            u.password === loginForm.password
+                        );
+                        
+                        if (user) {
+                            currentUser.value = user;
+                            loginError.value = '';
+                            Object.assign(loginForm, { username: '', password: '' });
+                            
+                            // Sync on login if online
+                            if (store.isOnline.value) {
+                                await store.syncWithServer();
+                            }
+                        } else {
+                            loginError.value = 'Nama pengguna atau kata sandi salah';
+                        }
+                    } catch (error) {
+                        loginError.value = 'Login gagal. Silakan coba lagi.';
+                        console.error('Login error:', error);
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                const logout = () => {
+                    currentUser.value = null;
+                    currentView.value = 'dashboard';
+                    Object.assign(loginForm, { username: '', password: '' });
+                    loginError.value = '';
+                };
+
+                const setView = (view) => {
+                    try {
+                        currentView.value = view;
+                        
+                        if (view === 'employee-details') {
+                            nextTick(() => {
+                                const employeesList = employees.value;
+                                if (Array.isArray(employeesList) && employeesList.length > 0 && !selectedEmployeeId.value) {
+                                    selectedEmployeeId.value = employeesList[0].id.toString();
+                                }
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error setting view:', error);
+                    }
+                };
+
+                const markAttendance = async (status) => {
+                    try {
+                        loading.value = true;
+                        if (!currentUser.value) {
+                            alert('Error: Pengguna tidak ditemukan');
+                            return;
+                        }
+                        
+                        store.addAttendance({
+                            userId: currentUser.value.id,
+                            status: status,
+                            note: ''
+                        });
+                    } catch (error) {
+                        console.error('Error marking attendance:', error);
+                        alert('Gagal mencatat kehadiran. Silakan coba lagi.');
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                const showLeaveModal = (type) => {
+                    try {
+                        Object.assign(leaveRequest, { type, note: '' });
+                        showModal.value = true;
+                    } catch (error) {
+                        console.error('Error showing leave modal:', error);
+                    }
+                };
+
+                const closeModal = () => {
+                    showModal.value = false;
+                    Object.assign(leaveRequest, { type: '', note: '' });
+                };
+
+                const submitLeaveRequest = async () => {
+                    try {
+                        loading.value = true;
+                        if (!leaveRequest.note?.trim()) {
+                            alert('Harap berikan alasan untuk permintaan cuti Anda');
+                            return;
+                        }
+                        
+                        if (!currentUser.value) {
+                            alert('Error: Pengguna tidak ditemukan');
+                            return;
+                        }
+                        
+                        store.addAttendance({
+                            userId: currentUser.value.id,
+                            status: leaveRequest.type,
+                            note: leaveRequest.note.trim()
+                        });
+                        closeModal();
+                    } catch (error) {
+                        console.error('Error submitting leave request:', error);
+                        alert('Gagal mengirim permintaan cuti. Silakan coba lagi.');
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                // Daily Tasks Methods
+                const addDailyTask = async () => {
+                    try {
+                        loading.value = true;
+                        if (!newTask.description?.trim()) {
+                            alert('Harap masukkan deskripsi tugas');
+                            return;
+                        }
+                        
+                        if (!currentUser.value) {
+                            alert('Error: Pengguna tidak ditemukan');
+                            return;
+                        }
+
+                        store.addDailyTask({
+                            userId: currentUser.value.id,
+                            description: newTask.description.trim()
+                        });
+                        newTask.description = '';
+                    } catch (error) {
+                        console.error('Error adding task:', error);
+                        alert('Gagal menambah tugas. Silakan coba lagi.');
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                const deleteTask = async (taskId) => {
+                    try {
+                        if (confirm('Apakah Anda yakin ingin menghapus tugas ini?')) {
+                            loading.value = true;
+                            store.deleteDailyTask(taskId);
+                        }
+                    } catch (error) {
+                        console.error('Error deleting task:', error);
+                        alert('Gagal menghapus tugas. Silakan coba lagi.');
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                // Employee Management Methods
+                const editEmployee = (employee) => {
+                    try {
+                        editingEmployee.value = employee;
+                        Object.assign(newEmployee, { ...employee });
+                    } catch (error) {
+                        console.error('Error editing employee:', error);
+                    }
+                };
+
+                const cancelEdit = () => {
+                    editingEmployee.value = null;
+                    Object.assign(newEmployee, { name: '', username: '', password: '', role: 'employee' });
+                };
+
+                const saveEmployee = async () => {
+                    try {
+                        loading.value = true;
+                        if (!newEmployee.name?.trim() || !newEmployee.username?.trim() || !newEmployee.password?.trim()) {
+                            alert('Harap isi semua field');
+                            return;
+                        }
+
+                        // Check for duplicate username
+                        const users = allUsers.value;
+                        if (Array.isArray(users)) {
+                            const existingUser = users.find(u => 
+                                u.username === newEmployee.username.trim() && 
+                                (!editingEmployee.value || u.id !== editingEmployee.value.id)
+                            );
+                            
+                            if (existingUser) {
+                                alert('Nama pengguna sudah ada');
+                                return;
+                            }
+                        }
+
+                        if (editingEmployee.value) {
+                            store.updateUser(editingEmployee.value.id, { ...newEmployee });
+                        } else {
+                            store.addUser({ ...newEmployee });
+                        }
+                        
+                        cancelEdit();
+                    } catch (error) {
+                        console.error('Error saving employee:', error);
+                        alert('Gagal menyimpan karyawan. Silakan coba lagi.');
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                const deleteEmployee = async (employeeId) => {
+                    try {
+                        if (confirm('Apakah Anda yakin ingin menghapus karyawan ini? Semua data terkait akan dihapus.')) {
+                            loading.value = true;
+                            store.deleteUser(employeeId);
+                        }
+                    } catch (error) {
+                        console.error('Error deleting employee:', error);
+                        alert('Gagal menghapus karyawan. Silakan coba lagi.');
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                // KPI Methods
+                const updateKpiProgress = async (kpi, event) => {
+                    try {
+                        loading.value = true;
+                        if (!currentUser.value) {
+                            alert('Error: Pengguna tidak ditemukan');
+                            return;
+                        }
+                        
+                        const newValue = Number(event.target.value) || 0;
+                        const validValue = Math.max(0, Math.min(newValue, kpi.target));
+                        
+                        const currentMonth = new Date().getMonth();
+                        const currentYear = new Date().getFullYear();
+                        
+                        store.updateKpiProgress(currentUser.value.id, kpi.id, validValue, currentMonth, currentYear);
+                    } catch (error) {
+                        console.error('Error updating KPI:', error);
+                        alert('Gagal memperbarui KPI. Silakan coba lagi.');
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                const addKpi = async () => {
+                    try {
+                        loading.value = true;
+                        if (!newKpi.name?.trim() || newKpi.target <= 0 || !Array.isArray(newKpi.assignedTo) || newKpi.assignedTo.length === 0) {
+                            alert('Harap isi semua field dengan benar dan tugaskan kepada minimal satu karyawan');
+                            return;
+                        }
+                        
+                        store.addKpi({ 
+                            ...newKpi,
+                            name: newKpi.name.trim(),
+                            description: newKpi.description?.trim() || '',
+                            assignedTo: [...newKpi.assignedTo]
+                        });
+                        
+                        Object.assign(newKpi, { name: '', target: 0, assignedTo: [], description: '' });
+                    } catch (error) {
+                        console.error('Error adding KPI:', error);
+                        alert('Gagal menambah KPI. Silakan coba lagi.');
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                const deleteKpi = async (kpiId) => {
+                    try {
+                        if (confirm('Apakah Anda yakin ingin menghapus KPI ini? Semua data progres akan dihapus.')) {
+                            loading.value = true;
+                            store.deleteKpi(kpiId);
+                        }
+                    } catch (error) {
+                        console.error('Error deleting KPI:', error);
+                        alert('Gagal menghapus KPI. Silakan coba lagi.');
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                // Reports Methods
+                const refreshReports = async () => {
+                    try {
+                        loading.value = true;
+                        if (store.isOnline.value) {
+                            await store.syncWithServer();
+                        }
+                    } catch (error) {
+                        console.error('Error refreshing reports:', error);
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                const refreshEmployeeDetails = async () => {
+                    try {
+                        loading.value = true;
+                        if (store.isOnline.value) {
+                            await store.syncWithServer();
+                        }
+                    } catch (error) {
+                        console.error('Error refreshing employee details:', error);
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                // Utility functions
+                const formatDate = (date) => {
+                    try {
+                        return date.toLocaleDateString('id-ID', { 
+                            weekday: 'short', 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric' 
+                        });
+                    } catch (error) {
+                        console.error('Error formatting date:', error);
+                        return 'Format tanggal error';
+                    }
+                };
+
+                const formatTime = (timestamp) => {
+                    try {
+                        return new Date(timestamp).toLocaleTimeString('id-ID', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                    } catch (error) {
+                        console.error('Error formatting time:', error);
+                        return 'Format waktu error';
+                    }
+                };
+
+                const getUserName = (userId) => {
+                    try {
+                        const user = store.getUserById(userId);
+                        return user ? user.name : 'Pengguna Tidak Dikenal';
+                    } catch (error) {
+                        console.error('Error getting user name:', error);
+                        return 'Error Nama Pengguna';
+                    }
+                };
+
+                const getKpiName = (kpiId) => {
+                    try {
+                        const kpisData = kpis.value;
+                        if (!Array.isArray(kpisData)) return 'KPI Tidak Dikenal';
+                        const kpi = kpisData.find(k => k.id === kpiId);
+                        return kpi ? kpi.name : 'KPI Tidak Dikenal';
+                    } catch (error) {
+                        console.error('Error getting KPI name:', error);
+                        return 'Error Nama KPI';
+                    }
+                };
+
+                const getAssignedNames = (userIds) => {
+                    try {
+                        if (!Array.isArray(userIds)) return 'Data tidak valid';
+                        return userIds.map(id => getUserName(id)).join(', ');
+                    } catch (error) {
+                        console.error('Error getting assigned names:', error);
+                        return 'Error Nama Penugasan';
+                    }
+                };
+
+                const getAttendanceStatus = (userId) => {
+                    try {
+                        const today = new Date().toDateString();
+                        const attendanceData = attendance.value;
+                        
+                        if (!Array.isArray(attendanceData)) return 'status-absent';
+                        
+                        const record = attendanceData.find(a => 
+                            a.userId === userId && 
+                            new Date(a.timestamp).toDateString() === today
+                        );
+                        
+                        if (!record) return 'status-absent';
+                        
+                        switch(record.status) {
+                            case 'present': return 'status-present';
+                            case 'sick': return 'status-sick';
+                            case 'personal': return 'status-leave';
+                            case 'field-work': return 'status-field-work';
+                            default: return 'status-absent';
+                        }
+                    } catch (error) {
+                        console.error('Error getting attendance status:', error);
+                        return 'status-absent';
+                    }
+                };
+
+                const getAttendanceStatusText = (userId) => {
+                    try {
+                        const today = new Date().toDateString();
+                        const attendanceData = attendance.value;
+                        
+                        if (!Array.isArray(attendanceData)) return 'Belum Dicatat';
+                        
+                        const record = attendanceData.find(a => 
+                            a.userId === userId && 
+                            new Date(a.timestamp).toDateString() === today
+                        );
+                        
+                        if (!record) return 'Belum Dicatat';
+                        
+                        return getStatusText(record.status);
+                    } catch (error) {
+                        console.error('Error getting attendance status text:', error);
+                        return 'Error Status';
+                    }
+                };
+
+                const getStatusClass = (status) => {
+                    try {
+                        switch(status) {
+                            case 'present': return 'status-present';
+                            case 'sick': return 'status-sick';
+                            case 'personal': return 'status-leave';
+                            case 'field-work': return 'status-field-work';
+                            default: return 'status-absent';
+                        }
+                    } catch (error) {
+                        console.error('Error getting status class:', error);
+                        return 'status-absent';
+                    }
+                };
+
+                const getStatusText = (status) => {
+                    try {
+                        switch(status) {
+                            case 'present': return 'Hadir';
+                            case 'sick': return 'Cuti Sakit';
+                            case 'personal': return 'Cuti Pribadi';
+                            case 'field-work': return 'Kerja Lapangan';
+                            default: return 'Belum Dicatat';
+                        }
+                    } catch (error) {
+                        console.error('Error getting status text:', error);
+                        return 'Error Status';
+                    }
+                };
+
+                const getLeaveTitle = () => {
+                    try {
+                        switch(leaveRequest.type) {
+                            case 'sick': return 'Permintaan Cuti Sakit';
+                            case 'personal': return 'Permintaan Cuti Pribadi';
+                            case 'field-work': return 'Permintaan Kerja Lapangan';
+                            default: return 'Permintaan Cuti';
+                        }
+                    } catch (error) {
+                        console.error('Error getting leave title:', error);
+                        return 'Permintaan Cuti';
+                    }
+                };
+
+                const getSelectedEmployeeName = () => {
+                    try {
+                        if (!selectedEmployeeId.value) return '';
+                        const employeesList = employees.value;
+                        if (!Array.isArray(employeesList)) return 'Karyawan Tidak Dikenal';
+                        const emp = employeesList.find(e => e.id === parseInt(selectedEmployeeId.value));
+                        return emp ? emp.name : 'Karyawan Tidak Dikenal';
+                    } catch (error) {
+                        console.error('Error getting selected employee name:', error);
+                        return 'Error Nama Karyawan';
+                    }
+                };
+
+                // Initialization
+                onMounted(async () => {
+                    try {
+                        console.log('Aplikasi HRIS PWA diinisialisasi');
+                        
+                        // Initial sync if online
+                        if (store.isOnline.value) {
+                            await store.syncWithServer();
+                        }
+                        
+                        nextTick(() => {
+                            try {
+                                const employeesList = employees.value;
+                                if (Array.isArray(employeesList) && employeesList.length > 0) {
+                                    selectedEmployeeId.value = employeesList[0].id.toString();
+                                }
+                            } catch (error) {
+                                console.error('Error setting initial employee selection:', error);
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Error during app initialization:', error);
+                    }
+                });
+
+                return {
+                    // State
+                    currentUser,
+                    currentView,
+                    loginForm,
+                    loginError,
+                    showModal,
+                    leaveRequest,
+                    newKpi,
+                    newTask,
+                    newEmployee,
+                    editingEmployee,
+                    selectedEmployeeId,
+                    selectedMonth,
+                    reportMonth,
+                    reportYear,
+                    monthNames,
+                    availableYears,
+                    loading,
+                    
+                    // Computed
+                    allUsers,
+                    employees,
+                    kpis,
+                    myKpis,
+                    todayTasks,
+                    todayAttendance,
+                    presentToday,
+                    filteredAttendanceReport,
+                    filteredKpiReport,
+                    selectedEmployeeAttendance,
+                    selectedEmployeeKpis,
+                    selectedEmployeeTasks,
+                    
+                    // Methods
+                    login,
+                    logout,
+                    setView,
+                    markAttendance,
+                    showLeaveModal,
+                    closeModal,
+                    submitLeaveRequest,
+                    addDailyTask,
+                    deleteTask,
+                    editEmployee,
+                    cancelEdit,
+                    saveEmployee,
+                    deleteEmployee,
+                    updateKpiProgress,
+                    addKpi,
+                    deleteKpi,
+                    refreshReports,
+                    refreshEmployeeDetails,
+                    formatDate,
+                    formatTime,
+                    getUserName,
+                    getKpiName,
+                    getAssignedNames,
+                    getAttendanceStatus,
+                    getAttendanceStatusText,
+                    getStatusClass,
+                    getStatusText,
+                    getLeaveTitle,
+                    getSelectedEmployeeName
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
